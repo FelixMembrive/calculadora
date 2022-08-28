@@ -5,53 +5,76 @@ import Display from './src/componentes/Display';
 
 export default function App() {
 
-  const [displayValue, setDisplayValue] = useState("0");
-  const [clearDisplay, setClearDisplay] = useState(false);
-  const [operation, setOperation] = useState(null);
-  const [values, setValues] = useState([0, 0]);
-  const [current, setCurrent] = useState(0);
+  const [displayValue, setDisplayValue] = useState("0")
+  const [clearDisplay, setClearDisplay] = useState(true)
+  const [operation, setOperation] = useState(null)
+  const [values, setValues] = useState([0, 0])
+  const [current, setCurrent] = useState(0)
 
   const addDigit = (n) => {
-    if (n === "." && !clearDisplay && displayValue.includes(".")) {
-      return;
+    setClearDisplay(false)
+    if (n === "." && displayValue.includes(".")) {
+      return
     }
-    
-    const clearDisplayValue = displayValue === "0" || clearDisplay;
-    const currentValue = clearDisplayValue ? "" : displayValue;
-    const valueOfDisplay = currentValue + n;
-    setDisplayValue(valueOfDisplay);
-    setClearDisplay(false);
- 
-    if (n !== ".") {
-      const newValue = parseFloat(displayValue);
-      const valuesArr = [values];
-      valuesArr[current] = newValue;
-      setValues(valuesArr);
+
+    if (n === "0") {
+      setClearDisplay(true)
     }
-  };
+
+    const currentValue = (clearDisplay ? "" : displayValue)
+    console.log(currentValue);
+    setDisplayValue(currentValue + n)
+    console.log("valor de n = " + n);
+    console.log("valor de displayValue = " + displayValue);
+
+
+    // if (n !== ".") {
+      const newValue = parseFloat(displayValue)
+      const newArray = values
+      newArray[current] = newValue
+      setValues(newArray)
+      console.log(values);
+    // }
+  }
 
   
   const addOperation = operation => {
+    
+    
+    const newValue = parseFloat(displayValue)
+    const newArray = values
+    newArray[current] = newValue
+    setValues(newArray)
+    console.log(values);
+    
+    console.log("valor de displayValue = " + displayValue);
+    console.log("valor de newArray = " + values);
+
+
     if (current === 0) {
-      setOperation(operation);
-      setCurrent(1);
-      setClearDisplay(true);
+      setCurrent(1)
+      setClearDisplay(true)
+      setOperation(operation)
     } else {
-      const values = [...values];
+      const equals = operation === "="
+      //   const values = [...values]
+      try {
+        const expression = `${values[0]} ${operation} ${values[1]}`
+        console.log("valor de expressions = " + expression);
+        values[0] =
+        eval(expression)
+      } catch (e) {
+        setValues(0)
+        setOperation(equals ? null : operation)
+        
+      }
+      values[1] = 0
+      setDisplayValue(values[0])
+      setCurrent(equals ? 0 : 1)
+      setClearDisplay(true)
+      setValues(values)
     }
-    const equals = operation === "=";
-    try {
-      values[0] = eval(`${values[0]} ${operation} ${values[1]}`);
-    } catch (e) {
-      values[0] = values[0];
-    }
-    values[1] = 0;
-    setDisplayValue(String(values[0]));
-    setOperation(equals ? null : operation);
-    setCurrent(equals ? 0 : 1);
-    setClearDisplay(true);
-    setValues(values);
-  };
+  }
 
   const resolution = () => {
 
