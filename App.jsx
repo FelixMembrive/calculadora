@@ -5,71 +5,113 @@ import Display from './src/componentes/Display';
 
 export default function App() {
 
-  const [displayValue, setDisplayValue] = useState("0");
-  const [clearDisplay, setClearDisplay] = useState(false);
-  const [operation, setOperation] = useState(null);
-  const [values, setValues] = useState([0, 0]);
-  const [current, setCurrent] = useState(0);
+  const [displayValue, setDisplayValue] = useState("0")
+  const [clearDisplay, setClearDisplay] = useState(false)
+  const [operations, setOperations] = useState(null)
+  const [values, setValues] = useState(["0", "0"])
+  const [current, setCurrent] = useState(0)
+  const [disableOperations, setDisableOperations] = useState(false)
+  const [autoReset, setAutoReset] = useState(false)
 
   const addDigit = (n) => {
-    if (n === "." && !clearDisplay && displayValue.includes(".")) {
-      return;
+    if (autoReset) {
+      clearMemory()
     }
-    
-    const clearDisplayValue = displayValue === "0" || clearDisplay;
-    const currentValue = clearDisplayValue ? "" : displayValue;
-    const valueOfDisplay = currentValue + n;
-    setDisplayValue(valueOfDisplay);
-    setClearDisplay(false);
- 
-    if (n !== ".") {
-      const newValue = parseFloat(displayValue);
-      const valuesArr = [values];
-      valuesArr[current] = newValue;
-      setValues(valuesArr);
-    }
-  };
 
-  
-  const addOperation = operation => {
-    if (current === 0) {
-      setOperation(operation);
-      setCurrent(1);
-      setClearDisplay(true);
-    } else {
-      const values = [...values];
-    }
-    const equals = operation === "=";
-    try {
-      values[0] = eval(`${values[0]} ${operation} ${values[1]}`);
-    } catch (e) {
-      values[0] = values[0];
-    }
-    values[1] = 0;
-    setDisplayValue(String(values[0]));
-    setOperation(equals ? null : operation);
-    setCurrent(equals ? 0 : 1);
-    setClearDisplay(true);
-    setValues(values);
-  };
+    setDisableOperations(false)
+    console.log("valor de current = " + current);
 
-  const resolution = () => {
+    const ignoreDisplay = displayValue === "0" || clearDisplay
+
+    if (n === "." && displayValue.includes(".") && !ignoreDisplay) {
+      return
+    }
+
+    let currentValue = (ignoreDisplay ? "" : displayValue)
+    currentValue = currentValue + n
+    setDisplayValue(currentValue)
+    setClearDisplay(false)
+
+    const newArray = values
+    newArray[current] = displayValue
+    setValues(newArray)
+    setAutoReset(false)
 
   }
 
-  const expression = `${values[0]} ${operation} ${values[1]}`
+  console.log("valor de displayValue = " + displayValue);
+  console.log(values);
+
+
+
+  const addOperation = operation => {
+    setAutoReset(false)
+    setOperations(operation)
+    setDisableOperations(true)
+    if (disableOperations === false) {
+      const newArray = values
+      newArray[current] = displayValue
+      setValues(newArray)
+      console.log(values);
+
+      // console.log("valor de displayValue = " + displayValue);
+      // console.log("valor de newArray = " + values);
+
+
+      if (current === 0) {
+        setCurrent(1)
+        setClearDisplay(true)
+        setOperations(operation)
+
+      }
+
+      else {
+        const equals = operations === "="
+        const actualValues = values
+        try {
+          const expression = `${actualValues[0]} ${operations} ${actualValues[1]}`
+          console.log("valor de expressions = " + expression);
+          actualValues[0] =
+            eval(expression)
+        } catch (e) {
+          actualValues[0] = values[0]
+        }
+        setDisplayValue(`${actualValues[0]}`)
+        setOperations(equals ? null : operation)
+        setCurrent(equals ? 0 : 1)
+        setClearDisplay(true)
+        setValues(actualValues)
+      }
+    }
+  }
+
+  // const getResult = (num1, num2, operation) => {
+  //   try {
+  //     const expression = `${num1} ${operation} ${num2}`
+  //     console.log("valor de expressions = " + expression);
+  //     actualValues[0] =
+  //       eval(expression)
+  //   } catch (e) {
+  //     actualValues[0] = values
+  //   }
+  //   eval(expression)
+  // }
+
+  const expression = `${values[0]} ${operations} ${values[1]}`
   console.log("valor de expressions = " + expression);
+  console.log("valor de operation = " + operations);
 
   const clearMemory = () => {
     setDisplayValue("0")
-    setClearDisplay(true)
-    setOperation(null)
+    setClearDisplay(false)
+    setOperations(null)
     setValues([0, 0])
     setCurrent(0)
   }
 
   return (
     <View style={styles.container}>
+      {/* <Display value={parseFloat(displayValue)} /> */}
       <Display value={displayValue} />
       <View style={styles.buttons}>
         <Button label="AC" triple click={() => clearMemory()} />
@@ -88,7 +130,7 @@ export default function App() {
         <Button label="+" operation click={() => addOperation("+")} />
         <Button label="0" double click={() => { addDigit("0") }} />
         <Button label="." click={() => { addDigit(".") }} />
-        <Button label="=" operation click={() => addOperation("=")} />
+        <Button label="=" operation click={() => [addOperation("="), setAutoReset(true)]} />
       </View>
     </View>
   );
